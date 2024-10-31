@@ -23,21 +23,94 @@ class Project(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(max_length=15, choices=TYPE_CHOICES)
 
+    def __str__(self):
+        return self.name
 
-class Collaborator(models.Model):
+
+class Contributor(models.Model):
     project = models.ForeignKey(
-        to=Project, on_delete=models.CASCADE, related_name="collaborators"
+        to=Project, on_delete=models.CASCADE, related_name="contributors"
     )
-    collaborator = models.ForeignKey(
+    contributor = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="collaborations",
+        related_name="contributions",
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["project", "collaborator"],
-                name="unique_project_collaborator",
+                fields=["project", "contributor"],
+                name="unique_project_contributor",
             )
         ]
+
+
+class Issue(models.Model):
+    TO_DO = "To Do"
+    IN_PROGRESS = "In Progress"
+    FINISHED = "Finished"
+
+    STATUS_LIST = [
+        (TO_DO, "To Do"),
+        (IN_PROGRESS, "In Progress"),
+        (FINISHED, "Finished"),
+    ]
+
+    LOW = "Low"
+    MEDIUM = "Medium"
+    HIGH = "High"
+
+    PRIORITY_LIST = [
+        (LOW, "Low"),
+        (MEDIUM, "Medium"),
+        (HIGH, "High"),
+    ]
+
+    BUG = "Bug"
+    FEATURE = "Feature"
+    TASK = "Task"
+
+    TAG_LIST = [
+        (BUG, "Bug"),
+        (FEATURE, "Feature"),
+        (TASK, "Task"),
+    ]
+
+    project = models.ForeignKey(
+        to=Project, on_delete=models.CASCADE, related_name="issues"
+    )
+    author = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=128)
+    description = models.TextField(max_length=1024)
+    status = models.CharField(
+        max_length=15, choices=STATUS_LIST, default=TO_DO
+    )
+    priority = models.CharField(max_length=8, choices=PRIORITY_LIST, default=LOW)
+    tag = models.CharField(max_length=8, choices=TAG_LIST)
+    attribution = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="attributed_issues",
+        null=True,
+    )
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Comment(models.Model):
+    author = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE
+    )
+    description = models.TextField(max_length=1024)
+    date_created = models.DateTimeField(auto_now_add=True)
+    issue = models.ForeignKey(
+        to=Issue, on_delete=models.CASCADE, related_name="comments"
+    )
+    uuid = models.UUIDField(
+        primary_key=False, default=uuid.uuid4, editable=False
+    )
