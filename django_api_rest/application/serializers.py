@@ -1,6 +1,7 @@
 from rest_framework.serializers import (
     ModelSerializer,
     CharField,
+    PrimaryKeyRelatedField,
     ValidationError,
 )
 
@@ -8,6 +9,8 @@ from application.models import Comment, Issue, Project, Contributor
 
 
 class ContributorSerializer(ModelSerializer):
+    """Serializer used to present the contributors of a project"""
+
     name = CharField(source="contributor.username")
     id = CharField(source="contributor.id")
 
@@ -17,17 +20,23 @@ class ContributorSerializer(ModelSerializer):
 
 
 class ContributorCreationSerializer(ModelSerializer):
-    contributor_id = CharField(source="contributor.id")
-    contributor_name = CharField(source="contributor.username", read_only=True)
-    project_id = CharField(source="project.id")
-    project_name = CharField(source="project.name", read_only=True)
-
+    """
+    Serializer used when the contributor url is called to be able to
+    create one
+    """
+    
     class Meta:
         model = Contributor
-        fields = ["contributor_id", "contributor_name", "project_id", "project_name"]
+        fields = [
+            "contributor",
+            "project",
+        ]
 
 
 class CommentSerializer(ModelSerializer):
+    """Main Comment serialiazer"""
+    
+    author = PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Comment
@@ -41,7 +50,27 @@ class CommentSerializer(ModelSerializer):
         ]
 
 
-class IssueListSerializer(ModelSerializer):
+class BaseIssueSerializer(ModelSerializer):
+    """
+    Base Serializer for Issue Model that implement the validate_attribution
+    method
+    """
+    
+    author = PrimaryKeyRelatedField(read_only=True)
+
+    def validate_attribution(self, value):
+        project = self.initial_data.get("project") or self.instance.project
+        if not Contributor.objects.filter(
+            project=project, contributor=value
+        ).exists():
+            raise ValidationError(
+                "The attributed user must be a contributor to the project."
+            )
+        return value
+
+
+class IssueListSerializer(BaseIssueSerializer):
+    """List view Issue Serializer"""
 
     class Meta:
         model = Issue
@@ -58,18 +87,10 @@ class IssueListSerializer(ModelSerializer):
             "date_created",
         ]
 
-    def validate_attribution(self, value):
-        project = self.initial_data.get("project")
-        if not Contributor.objects.filter(
-            project=project, contributor=value
-        ).exists():
-            raise ValidationError(
-                "The attributed user must be a contributor to the project."
-            )
-        return value
 
+class IssueDetailSerializer(BaseIssueSerializer):
+    """Detail view Issue serialiazer. Adds the associated comments"""
 
-class IssueDetailSerializer(ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -88,18 +109,11 @@ class IssueDetailSerializer(ModelSerializer):
             "comments",
         ]
 
-    def validate_attribution(self, value):
-        project = self.initial_data.get("project")
-        if not Contributor.objects.filter(
-            project=project, contributor=value
-        ).exists():
-            raise ValidationError(
-                "The attributed user must be a contributor to the project."
-            )
-        return value
-
 
 class ProjectListSerializer(ModelSerializer):
+    """List view project serializer"""
+    
+    author = PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Project
@@ -113,6 +127,11 @@ class ProjectListSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
+    """
+    Detail view project serializer. Adds the display of the contributors and
+    issues (without comments)
+    """
+    author = PrimaryKeyRelatedField(read_only=True)
     contributors = ContributorSerializer(many=True, read_only=True)
     issues = IssueListSerializer(many=True, read_only=True)
 

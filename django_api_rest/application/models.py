@@ -27,25 +27,6 @@ class Project(models.Model):
         return self.name
 
 
-class Contributor(models.Model):
-    project = models.ForeignKey(
-        to=Project, on_delete=models.CASCADE, related_name="contributors"
-    )
-    contributor = models.ForeignKey(
-        to=settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="contributions",
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["project", "contributor"],
-                name="unique_project_contributor",
-            )
-        ]
-
-
 class Issue(models.Model):
     TO_DO = "To Do"
     IN_PROGRESS = "In Progress"
@@ -92,7 +73,7 @@ class Issue(models.Model):
     tag = models.CharField(max_length=8, choices=TAG_LIST)
     attribution = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="attributed_issues",
         null=True,
     )
@@ -114,3 +95,24 @@ class Comment(models.Model):
     uuid = models.UUIDField(
         primary_key=False, default=uuid.uuid4, editable=False
     )
+
+
+class Contributor(models.Model):
+    """Intermediate model to make the link between a Project and a User"""
+
+    project = models.ForeignKey(
+        to=Project, on_delete=models.CASCADE, related_name="contributors"
+    )
+    contributor = models.ForeignKey(
+        to=settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="contributions",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "contributor"],
+                name="unique_project_contributor",
+            )
+        ]
