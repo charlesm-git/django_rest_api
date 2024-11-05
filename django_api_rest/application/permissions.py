@@ -1,8 +1,7 @@
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied
-from rest_framework import permissions
 
-from application.models import Contributor, Issue, Comment, Project
+from application.models import Contributor, Issue, Project
 
 CREATE_METHOD = ["POST"]
 UPDATE_METHOD = ["PUT", "PATCH", "DELETE"]
