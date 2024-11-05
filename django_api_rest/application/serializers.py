@@ -1,22 +1,24 @@
 from rest_framework.serializers import (
     ModelSerializer,
     CharField,
+    IntegerField,
     PrimaryKeyRelatedField,
     ValidationError,
 )
 
 from application.models import Comment, Issue, Project, Contributor
+from users.models import User
 
 
 class ContributorSerializer(ModelSerializer):
     """Serializer used to present the contributors of a project"""
 
-    name = CharField(source="contributor.username")
-    id = CharField(source="contributor.id")
+    contributor_name = CharField(source="contributor.username")
+    contributor_id = IntegerField(source="contributor.id")
 
     class Meta:
         model = Contributor
-        fields = ["id", "name"]
+        fields = ["id", "contributor_id", "contributor_name"]
 
 
 class ContributorCreationSerializer(ModelSerializer):
@@ -24,18 +26,19 @@ class ContributorCreationSerializer(ModelSerializer):
     Serializer used when the contributor url is called to be able to
     create one
     """
-    
+
     class Meta:
         model = Contributor
         fields = [
-            "contributor",
+            "id",
             "project",
+            "contributor",
         ]
 
 
 class CommentSerializer(ModelSerializer):
     """Main Comment serialiazer"""
-    
+
     author = PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -55,7 +58,7 @@ class BaseIssueSerializer(ModelSerializer):
     Base Serializer for Issue Model that implement the validate_attribution
     method
     """
-    
+
     author = PrimaryKeyRelatedField(read_only=True)
 
     def validate_attribution(self, value):
@@ -89,7 +92,10 @@ class IssueListSerializer(BaseIssueSerializer):
 
 
 class IssueDetailSerializer(BaseIssueSerializer):
-    """Detail view Issue serialiazer. Adds the associated comments"""
+    """
+    Detail view Issue serialiazer. Adds the associated comments compared to the
+    list serializer
+    """
 
     comments = CommentSerializer(many=True, read_only=True)
 
@@ -112,7 +118,7 @@ class IssueDetailSerializer(BaseIssueSerializer):
 
 class ProjectListSerializer(ModelSerializer):
     """List view project serializer"""
-    
+
     author = PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -122,6 +128,7 @@ class ProjectListSerializer(ModelSerializer):
             "name",
             "author",
             "type",
+            "description",
             "date_created",
         ]
 
@@ -129,8 +136,9 @@ class ProjectListSerializer(ModelSerializer):
 class ProjectDetailSerializer(ModelSerializer):
     """
     Detail view project serializer. Adds the display of the contributors and
-    issues (without comments)
+    issues (without comments) compared to the list serializer.
     """
+
     author = PrimaryKeyRelatedField(read_only=True)
     contributors = ContributorSerializer(many=True, read_only=True)
     issues = IssueListSerializer(many=True, read_only=True)

@@ -10,8 +10,7 @@ UPDATE_METHOD = ["PUT", "PATCH", "DELETE"]
 
 class IsContributor(BasePermission):
     """
-    Object permission : Only contributors to a project can create Issues and
-    Comments
+    Only contributors to a project can create Issues, Comments and Contributors
     """
 
     def has_permission(self, request, view):
@@ -29,7 +28,7 @@ class IsContributor(BasePermission):
                 else:
                     PermissionDenied("Invalid Issue reference")
 
-            # If a project with this id exists, check if the user is a
+            # If a project with this id exists, checks if the user is a
             # contributor and return a granted permission or an error
             if project_id:
                 project = Project.objects.filter(pk=project_id).first()

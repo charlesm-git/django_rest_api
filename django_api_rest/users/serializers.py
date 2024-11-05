@@ -20,6 +20,9 @@ class UserSerializer(ModelSerializer):
         ]
 
     def validate_date_of_birth(self, value):
+        """
+        Validate that the user is older that 15 before creating the account
+        """
         today = date.today()
         age = (today - value).days // 365
         if age < 15:
