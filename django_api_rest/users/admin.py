@@ -11,4 +11,5 @@ class UserAdmin(admin.ModelAdmin):
         "can_data_be_shared",
     )
 
+
 admin.site.register(User, UserAdmin)

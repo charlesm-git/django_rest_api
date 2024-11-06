@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 from rest_framework.exceptions import PermissionDenied
 
+
 class IsAdminOrSelf(BasePermission):
 
     def has_permission(self, request, view):
@@ -16,6 +17,8 @@ class IsAdminOrSelf(BasePermission):
             "update",
             "partial_update",
             "destroy",
-        ] and (request.user == obj or request.user.is_staff == True):
+        ] and (request.user == obj or request.user.is_staff):
             return True
-        raise PermissionDenied("You do not have the permission to do this action")
+        raise PermissionDenied(
+            "You do not have the permission to do this action"
+        )

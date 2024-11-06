@@ -7,7 +7,6 @@ from rest_framework.serializers import (
 )
 
 from application.models import Comment, Issue, Project, Contributor
-from users.models import User
 
 
 class ContributorSerializer(ModelSerializer):

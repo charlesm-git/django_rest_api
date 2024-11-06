@@ -70,7 +70,9 @@ class Issue(models.Model):
     status = models.CharField(
         max_length=15, choices=STATUS_LIST, default=TO_DO
     )
-    priority = models.CharField(max_length=8, choices=PRIORITY_LIST, default=LOW)
+    priority = models.CharField(
+        max_length=8, choices=PRIORITY_LIST, default=LOW
+    )
     tag = models.CharField(max_length=8, choices=TAG_LIST)
     attribution = models.ForeignKey(
         to=settings.AUTH_USER_MODEL,

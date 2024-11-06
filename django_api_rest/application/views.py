@@ -1,4 +1,3 @@
-from ast import Is
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 
@@ -17,7 +16,7 @@ from application.permissions import IsAuthorToModify, IsContributor
 class MultipleSerializerMixin:
     """
     Mixin to have multiple serializers.
-    Allow the possibility to use a detail serializer for an object specific 
+    Allow the possibility to use a detail serializer for an object specific
     view.
     """
 
@@ -76,7 +75,7 @@ class IssueViewset(MultipleSerializerMixin, ModelViewSet):
 
     def get_queryset(self):
         """
-        The user can only access the issues from projects where he is a 
+        The user can only access the issues from projects where he is a
         contributor himself.
         """
         user = self.request.user
@@ -88,7 +87,7 @@ class CommentViewset(ModelViewSet):
 
     serializer_class = CommentSerializer
     queryset = Comment.objects.all()
-    # The User needs to be identified and a contributor to the ptoject to be 
+    # The User needs to be identified and a contributor to the ptoject to be
     # able to create a Comment, he is the only one that can update/delete it
     permission_classes = [
         IsAuthenticated,
@@ -101,7 +100,7 @@ class CommentViewset(ModelViewSet):
 
     def get_queryset(self):
         """
-        The user can only access the comments from projects where he is a 
+        The user can only access the comments from projects where he is a
         contributor himself.
         """
         user = self.request.user
@@ -120,7 +119,7 @@ class ContributorViewset(ModelViewSet):
 
     def get_queryset(self):
         """
-        The user can only access the contributors from projects where he is a 
+        The user can only access the contributors from projects where he is a
         contributor himself.
         """
         user = self.request.user
